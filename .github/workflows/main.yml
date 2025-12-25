@@ -28,11 +28,12 @@ jobs:
         with:
           python-version: '3.11'
 
-      # 4. Kütüphaneleri Yükle
+      # 4. Kütüphaneleri Yükle (Packaging eklendi)
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install cookiecutter
+          pip install packaging
           pip install flet
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
@@ -47,14 +48,16 @@ jobs:
         run: |
           yes | flutter doctor --android-licenses
 
-      # 7. APK Derleme (İŞTE SİHİRLİ DOKUNUŞ BURADA!)
-      # --project-name parametresi ile tire sorununu çözüyoruz.
-      # --org parametresi ile benzersiz bir kimlik veriyoruz.
+      # 7. Dosyaları Kontrol Et (Debug amaçlı)
+      - name: List Files
+        run: ls -R
+
+      # 8. APK Derleme (NOKTA EKLENDİ ve JSON DOSYALARI DAHİL EDİLDİ)
       - name: Build APK
         run: |
-          flet build apk --project-name kpss_pro_2026 --org com.kpssai.app --verbose
+          flet build apk . --project-name kpss_pro_2026 --org com.kpssai.app --verbose
 
-      # 8. Sonucu Yükle
+      # 9. Sonucu Yükle
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
