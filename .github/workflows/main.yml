@@ -15,7 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. JAVA 17 KUR (Android için şart)
+      # 2. JAVA 17 KUR
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      # 4. Kütüphaneleri ve EKSİK OLAN 'cookiecutter'ı Yükle
+      # 4. Kütüphaneleri Yükle
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
@@ -47,19 +47,14 @@ jobs:
         run: |
           yes | flutter doctor --android-licenses
 
-      # 7. Dosyaları Kontrol Et (Hata varsa loglarda görelim)
-      - name: Check Files
-        run: |
-          ls -R
-          echo "Assets klasörü var mı kontrol ediliyor..."
-          if [ -d "assets" ]; then echo "Assets klasörü bulundu."; else echo "HATA: assets klasörü bulunamadı (küçük harf olduğuna emin ol)!"; exit 1; fi
-
-      # 8. APK Derleme (Verbose moduyla detaylı)
+      # 7. APK Derleme (İŞTE SİHİRLİ DOKUNUŞ BURADA!)
+      # --project-name parametresi ile tire sorununu çözüyoruz.
+      # --org parametresi ile benzersiz bir kimlik veriyoruz.
       - name: Build APK
         run: |
-          flet build apk --verbose
+          flet build apk --project-name kpss_pro_2026 --org com.kpssai.app --verbose
 
-      # 9. Sonucu Yükle
+      # 8. Sonucu Yükle
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
