@@ -28,36 +28,67 @@ jobs:
         with:
           python-version: '3.11'
 
-      # 4. Kütüphaneleri Yükle (Packaging eklendi)
-      - name: Install Dependencies
+      # 4. KLASÖR YAPISINI DÜZELT (EN ÖNEMLİ ADIM)
+      # Eğer main.py bir alt klasördeyse, onu bulup ana dizine taşırız.
+      - name: Fix Directory Structure
+        run: |
+          echo "Dosyalar aranıyor..."
+          # main.py dosyasını bul
+          MAIN_PATH=$(find . -name "main.py" -print -quit)
+          
+          if [ -z "$MAIN_PATH" ]; then
+            echo "HATA: main.py dosyası hiçbir yerde bulunamadı!"
+            ls -R
+            exit 1
+          fi
+
+          echo "main.py bulundu: $MAIN_PATH"
+          
+          # Eğer main.py zaten kök dizinde değilse taşı
+          if [ "$MAIN_PATH" != "./main.py" ]; then
+            echo "Dosyalar ana dizine taşınıyor..."
+            DIR_NAME=$(dirname "$MAIN_PATH")
+            mv "$DIR_NAME"/* .
+            # Boşalan klasörü sil (varsa)
+            rm -rf "$DIR_NAME"
+          fi
+          
+          echo "Dizin yapısı düzenlendi. Listeleniyor:"
+          ls -F
+
+      # 5. requirements.txt TEMİZLİĞİ
+      # Flet zaten Android içinde gömülüdür. requirements.txt içinde flet yazarsa çakışma yapar.
+      # Bu yüzden requirements dosyasını boşaltıyoruz.
+      - name: Clean requirements.txt
+        run: |
+          echo "" > requirements.txt
+          echo "Gereksiz paketler temizlendi."
+
+      # 6. Gerekli Araçları Yükle
+      - name: Install Build Tools
         run: |
           python -m pip install --upgrade pip
           pip install cookiecutter
           pip install packaging
           pip install flet
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      # 5. Flutter Ortamını Hazırla
+      # 7. Flutter Ortamını Hazırla
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.19.0'
 
-      # 6. Android Lisanslarını Kabul Et
+      # 8. Android Lisanslarını Kabul Et
       - name: Accept Android Licenses
         run: |
           yes | flutter doctor --android-licenses
 
-      # 7. Dosyaları Kontrol Et (Debug amaçlı)
-      - name: List Files
-        run: ls -R
-
-      # 8. APK Derleme (NOKTA EKLENDİ ve JSON DOSYALARI DAHİL EDİLDİ)
+      # 9. APK Derleme
       - name: Build APK
         run: |
           flet build apk . --project-name kpss_pro_2026 --org com.kpssai.app --verbose
 
-      # 9. Sonucu Yükle
+      # 10. Sonucu Yükle
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
